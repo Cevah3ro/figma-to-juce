@@ -1,0 +1,358 @@
+{
+  "name": "Auto Layout Test",
+  "role": "owner",
+  "lastModified": "2026-02-20T12:00:00Z",
+  "editorType": "figma",
+  "thumbnailUrl": "https://example.com/thumb.png",
+  "version": "1",
+  "document": {
+    "id": "0:0",
+    "name": "Document",
+    "type": "DOCUMENT",
+    "children": [
+      {
+        "id": "0:1",
+        "name": "Controls",
+        "type": "CANVAS",
+        "backgroundColor": { "r": 0.1, "g": 0.1, "b": 0.13, "a": 1.0 },
+        "children": [
+          {
+            "id": "3:1",
+            "name": "ControlPanel",
+            "type": "FRAME",
+            "visible": true,
+            "opacity": 1,
+            "blendMode": "PASS_THROUGH",
+            "absoluteBoundingBox": { "x": 0, "y": 0, "width": 600, "height": 120 },
+            "constraints": { "horizontal": "LEFT", "vertical": "TOP" },
+            "clipsContent": true,
+            "layoutMode": "HORIZONTAL",
+            "primaryAxisSizingMode": "FIXED",
+            "counterAxisSizingMode": "FIXED",
+            "primaryAxisAlignItems": "SPACE_BETWEEN",
+            "counterAxisAlignItems": "CENTER",
+            "paddingLeft": 24,
+            "paddingRight": 24,
+            "paddingTop": 16,
+            "paddingBottom": 16,
+            "itemSpacing": 16,
+            "layoutWrap": "NO_WRAP",
+            "fills": [
+              {
+                "type": "SOLID",
+                "visible": true,
+                "opacity": 1,
+                "color": { "r": 0.13, "g": 0.13, "b": 0.17, "a": 1.0 }
+              }
+            ],
+            "strokes": [],
+            "effects": [],
+            "cornerRadius": 8,
+            "children": [
+              {
+                "id": "3:2",
+                "name": "KnobGroup",
+                "type": "FRAME",
+                "visible": true,
+                "opacity": 1,
+                "blendMode": "PASS_THROUGH",
+                "absoluteBoundingBox": { "x": 24, "y": 16, "width": 200, "height": 88 },
+                "constraints": { "horizontal": "LEFT", "vertical": "TOP" },
+                "clipsContent": false,
+                "layoutMode": "VERTICAL",
+                "primaryAxisSizingMode": "AUTO",
+                "counterAxisSizingMode": "FIXED",
+                "primaryAxisAlignItems": "CENTER",
+                "counterAxisAlignItems": "CENTER",
+                "paddingLeft": 0,
+                "paddingRight": 0,
+                "paddingTop": 0,
+                "paddingBottom": 0,
+                "itemSpacing": 8,
+                "layoutAlign": "STRETCH",
+                "layoutGrow": 1,
+                "fills": [],
+                "strokes": [],
+                "effects": [],
+                "cornerRadius": 0,
+                "children": [
+                  {
+                    "id": "3:3",
+                    "name": "Knob Label",
+                    "type": "TEXT",
+                    "visible": true,
+                    "opacity": 1,
+                    "blendMode": "NORMAL",
+                    "absoluteBoundingBox": { "x": 60, "y": 16, "width": 80, "height": 14 },
+                    "constraints": { "horizontal": "CENTER", "vertical": "TOP" },
+                    "fills": [],
+                    "strokes": [],
+                    "effects": [],
+                    "characters": "ATTACK",
+                    "style": {
+                      "fontFamily": "Inter",
+                      "fontWeight": 500,
+                      "fontSize": 11,
+                      "textAlignHorizontal": "CENTER",
+                      "textAlignVertical": "TOP",
+                      "letterSpacing": { "value": 1.5, "unit": "PIXELS" },
+                      "lineHeightPx": 14,
+                      "lineHeightUnit": "PIXELS",
+                      "fills": [
+                        {
+                          "type": "SOLID",
+                          "visible": true,
+                          "color": { "r": 0.6, "g": 0.6, "b": 0.65, "a": 1.0 }
+                        }
+                      ],
+                      "textCase": "UPPER"
+                    },
+                    "layoutAlign": "INHERIT",
+                    "layoutGrow": 0,
+                    "textAutoResize": "WIDTH_AND_HEIGHT"
+                  },
+                  {
+                    "id": "3:4",
+                    "name": "Knob Circle",
+                    "type": "ELLIPSE",
+                    "visible": true,
+                    "opacity": 1,
+                    "blendMode": "NORMAL",
+                    "absoluteBoundingBox": { "x": 70, "y": 38, "width": 60, "height": 60 },
+                    "constraints": { "horizontal": "CENTER", "vertical": "TOP" },
+                    "fills": [
+                      {
+                        "type": "SOLID",
+                        "visible": true,
+                        "opacity": 1,
+                        "color": { "r": 0.25, "g": 0.25, "b": 0.3, "a": 1.0 }
+                      }
+                    ],
+                    "strokes": [
+                      {
+                        "type": "SOLID",
+                        "visible": true,
+                        "opacity": 0.5,
+                        "color": { "r": 0.5, "g": 0.7, "b": 1.0, "a": 1.0 }
+                      }
+                    ],
+                    "strokeWeight": 2,
+                    "strokeAlign": "OUTSIDE",
+                    "effects": [
+                      {
+                        "type": "DROP_SHADOW",
+                        "visible": true,
+                        "color": { "r": 0, "g": 0, "b": 0, "a": 0.5 },
+                        "offset": { "x": 0, "y": 2 },
+                        "radius": 6,
+                        "spread": 0
+                      }
+                    ],
+                    "layoutAlign": "INHERIT",
+                    "layoutGrow": 0
+                  }
+                ]
+              },
+              {
+                "id": "3:5",
+                "name": "Divider",
+                "type": "LINE",
+                "visible": true,
+                "opacity": 0.3,
+                "blendMode": "NORMAL",
+                "absoluteBoundingBox": { "x": 260, "y": 24, "width": 0, "height": 72 },
+                "constraints": { "horizontal": "CENTER", "vertical": "TOP_BOTTOM" },
+                "fills": [],
+                "strokes": [
+                  {
+                    "type": "SOLID",
+                    "visible": true,
+                    "opacity": 1,
+                    "color": { "r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0 }
+                  }
+                ],
+                "strokeWeight": 1,
+                "strokeAlign": "CENTER",
+                "effects": [],
+                "strokeGeometry": [
+                  {
+                    "path": "M 0 0 L 0 72",
+                    "windingRule": "NONZERO"
+                  }
+                ],
+                "layoutAlign": "INHERIT",
+                "layoutGrow": 0
+              },
+              {
+                "id": "3:6",
+                "name": "ButtonRow",
+                "type": "COMPONENT",
+                "visible": true,
+                "opacity": 1,
+                "blendMode": "PASS_THROUGH",
+                "absoluteBoundingBox": { "x": 280, "y": 30, "width": 296, "height": 60 },
+                "constraints": { "horizontal": "RIGHT", "vertical": "CENTER" },
+                "clipsContent": false,
+                "layoutMode": "HORIZONTAL",
+                "primaryAxisSizingMode": "AUTO",
+                "counterAxisSizingMode": "AUTO",
+                "primaryAxisAlignItems": "MIN",
+                "counterAxisAlignItems": "CENTER",
+                "paddingLeft": 8,
+                "paddingRight": 8,
+                "paddingTop": 8,
+                "paddingBottom": 8,
+                "itemSpacing": 12,
+                "fills": [],
+                "strokes": [],
+                "effects": [],
+                "cornerRadius": 4,
+                "layoutAlign": "INHERIT",
+                "layoutGrow": 0,
+                "children": [
+                  {
+                    "id": "3:7",
+                    "name": "Btn Bypass",
+                    "type": "INSTANCE",
+                    "visible": true,
+                    "opacity": 1,
+                    "blendMode": "NORMAL",
+                    "absoluteBoundingBox": { "x": 288, "y": 38, "width": 80, "height": 44 },
+                    "constraints": { "horizontal": "LEFT", "vertical": "CENTER" },
+                    "clipsContent": true,
+                    "componentId": "comp:bypass-btn",
+                    "fills": [
+                      {
+                        "type": "SOLID",
+                        "visible": true,
+                        "opacity": 1,
+                        "color": { "r": 0.2, "g": 0.2, "b": 0.25, "a": 1.0 }
+                      }
+                    ],
+                    "strokes": [],
+                    "effects": [],
+                    "cornerRadius": 6,
+                    "layoutAlign": "INHERIT",
+                    "layoutGrow": 0,
+                    "children": [
+                      {
+                        "id": "3:8",
+                        "name": "Btn Label",
+                        "type": "TEXT",
+                        "visible": true,
+                        "opacity": 1,
+                        "blendMode": "NORMAL",
+                        "absoluteBoundingBox": { "x": 296, "y": 48, "width": 64, "height": 16 },
+                        "constraints": { "horizontal": "CENTER", "vertical": "CENTER" },
+                        "fills": [],
+                        "strokes": [],
+                        "effects": [],
+                        "characters": "BYPASS",
+                        "style": {
+                          "fontFamily": "Inter",
+                          "fontWeight": 600,
+                          "fontSize": 12,
+                          "textAlignHorizontal": "CENTER",
+                          "textAlignVertical": "CENTER",
+                          "letterSpacing": { "value": 1, "unit": "PIXELS" },
+                          "lineHeightPx": 16,
+                          "lineHeightUnit": "PIXELS",
+                          "fills": [
+                            {
+                              "type": "SOLID",
+                              "visible": true,
+                              "color": { "r": 0.9, "g": 0.9, "b": 0.92, "a": 1.0 }
+                            }
+                          ]
+                        },
+                        "layoutAlign": "INHERIT",
+                        "layoutGrow": 0,
+                        "textAutoResize": "WIDTH_AND_HEIGHT"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "3:9",
+                    "name": "Btn Sidechain",
+                    "type": "INSTANCE",
+                    "visible": true,
+                    "opacity": 1,
+                    "blendMode": "NORMAL",
+                    "absoluteBoundingBox": { "x": 380, "y": 38, "width": 100, "height": 44 },
+                    "constraints": { "horizontal": "LEFT", "vertical": "CENTER" },
+                    "clipsContent": true,
+                    "componentId": "comp:sidechain-btn",
+                    "fills": [
+                      {
+                        "type": "SOLID",
+                        "visible": true,
+                        "opacity": 1,
+                        "color": { "r": 0.2, "g": 0.2, "b": 0.25, "a": 1.0 }
+                      }
+                    ],
+                    "strokes": [],
+                    "effects": [],
+                    "cornerRadius": 6,
+                    "layoutAlign": "INHERIT",
+                    "layoutGrow": 0,
+                    "children": [
+                      {
+                        "id": "3:10",
+                        "name": "Btn Label",
+                        "type": "TEXT",
+                        "visible": true,
+                        "opacity": 1,
+                        "blendMode": "NORMAL",
+                        "absoluteBoundingBox": { "x": 394, "y": 48, "width": 72, "height": 16 },
+                        "constraints": { "horizontal": "CENTER", "vertical": "CENTER" },
+                        "fills": [],
+                        "strokes": [],
+                        "effects": [],
+                        "characters": "SIDECHAIN",
+                        "style": {
+                          "fontFamily": "Inter",
+                          "fontWeight": 600,
+                          "fontSize": 12,
+                          "textAlignHorizontal": "CENTER",
+                          "textAlignVertical": "CENTER",
+                          "letterSpacing": { "value": 1, "unit": "PIXELS" },
+                          "lineHeightPx": 16,
+                          "lineHeightUnit": "PIXELS",
+                          "fills": [
+                            {
+                              "type": "SOLID",
+                              "visible": true,
+                              "color": { "r": 0.9, "g": 0.9, "b": 0.92, "a": 1.0 }
+                            }
+                          ]
+                        },
+                        "layoutAlign": "INHERIT",
+                        "layoutGrow": 0,
+                        "textAutoResize": "WIDTH_AND_HEIGHT"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "components": {
+    "comp:bypass-btn": {
+      "key": "bypass-btn-key",
+      "name": "BypassButton",
+      "description": "Toggle bypass state"
+    },
+    "comp:sidechain-btn": {
+      "key": "sidechain-btn-key",
+      "name": "SidechainButton",
+      "description": "Toggle sidechain input"
+    }
+  },
+  "componentSets": {},
+  "styles": {},
+  "schemaVersion": 0
+}
