@@ -487,7 +487,7 @@ function convertStrokes(
       join: convertStrokeJoin(strokeJoin),
       dashes: [],
       opacity: stroke.opacity ?? 1,
-      visible: stroke.visible !== false,
+      visible: true,
     });
   }
 
