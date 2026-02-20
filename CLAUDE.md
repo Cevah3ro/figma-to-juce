@@ -86,6 +86,9 @@ npx figma-to-juce --json ./figma-export.json --output ./generated/
 - Each codegen module handles one concern
 - Generated C++ should be clean, readable, well-commented
 
+## Test Data: AresAudio Figma Designs
+Use the AresAudio plugin designs from Figma as real-world test cases. These are actual audio plugin UIs with knobs, sliders, and custom components — exactly the target use case. Access them via the Figma MCP. Search for "AresAudio" or "Ares" in the connected Figma account.
+
 ## Key Design Decisions
 1. **IR layer is mandatory** — never generate C++ directly from Figma JSON
 2. **Pixel accuracy > code elegance** — match the design exactly
