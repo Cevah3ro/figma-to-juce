@@ -29,6 +29,22 @@ describe('generateHeader', () => {
     expect(result).toContain('JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MyComponent)');
   });
 
+  it('includes child member comments when provided', () => {
+    const result = generateHeader('MyComponent', 'MY_COMPONENT_H', [
+      { varName: 'knob1', comment: 'Knob 1 (ellipse)' },
+      { varName: 'background', comment: 'Background (rectangle)' },
+    ]);
+    expect(result).toContain('// Knob 1 (ellipse)');
+    expect(result).toContain('// juce::Component knob1;');
+    expect(result).toContain('// Background (rectangle)');
+    expect(result).toContain('// juce::Component background;');
+  });
+
+  it('omits child members section when none provided', () => {
+    const result = generateHeader('MyComponent', 'MY_COMPONENT_H');
+    expect(result).not.toContain('// juce::Component');
+  });
+
   it('uses the provided class name', () => {
     const result = generateHeader('PluginEditor', 'PLUGIN_EDITOR_H');
     expect(result).toContain('class PluginEditor');

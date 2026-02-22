@@ -5,7 +5,7 @@ import { isIRFrameNode } from '../ir/types.js';
 import { generatePaintBody } from './paint.js';
 import { generateResizedBody } from './resized.js';
 import { generateHeader, generateImplementation, toGuardName } from './templates.js';
-import { toClassName } from '../utils/naming.js';
+import { toClassName, toVariableName } from '../utils/naming.js';
 
 // ─── Public API ─────────────────────────────────────────────────────────────
 
@@ -60,11 +60,19 @@ export function generateComponent(frame: IRFrameNode): GeneratedComponent {
   const paintBody = generatePaintBody(frame);
   const resizedBody = generateResizedBody(frame);
 
+  // Collect child member info for header
+  const childMembers = frame.children
+    .filter(c => c.visible)
+    .map(c => ({
+      varName: toVariableName(c.name),
+      comment: `${c.name} (${c.type})`,
+    }));
+
   return {
     className,
     header: {
       fileName: headerFileName,
-      content: generateHeader(className, guardName),
+      content: generateHeader(className, guardName, childMembers),
     },
     implementation: {
       fileName: `${className}.cpp`,

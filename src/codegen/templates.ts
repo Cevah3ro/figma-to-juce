@@ -2,11 +2,20 @@
 
 /**
  * Generate the .h header file content for a JUCE Component class.
+ * @param childMembers Optional array of {varName, comment} for child component placeholders.
  */
 export function generateHeader(
   className: string,
   guardName: string,
+  childMembers: { varName: string; comment: string }[] = [],
 ): string {
+  let membersBlock = '';
+  if (childMembers.length > 0) {
+    membersBlock = '\n' + childMembers
+      .map(m => `    // ${m.comment}\n    // juce::Component ${m.varName};`)
+      .join('\n') + '\n';
+  }
+
   return `#pragma once
 
 #include <juce_gui_basics/juce_gui_basics.h>
@@ -20,7 +29,7 @@ public:
     void paint(juce::Graphics& g) override;
     void resized() override;
 
-private:
+private:${membersBlock}
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(${className})
 };
 `;
