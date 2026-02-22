@@ -236,6 +236,40 @@ describe('generateFlexBoxLayout', () => {
     expect(result).toContain('Wrap::wrap');
   });
 
+  it('applies itemSpacing as margin between FlexBox items', () => {
+    const rect1 = makeRect({ id: 'r:1', name: 'ItemA' });
+    const rect2 = makeRect({ id: 'r:2', name: 'ItemB' });
+    const frame = makeFrame({
+      autoLayout: { ...autoLayout, itemSpacing: 12 },
+      children: [rect1, rect2],
+    });
+    const result = generateResizedBody(frame);
+
+    // First item should have no left margin
+    const lines = result.split('\n');
+    const itemLines = lines.filter(l => l.includes('fb.items.add'));
+    expect(itemLines).toHaveLength(2);
+    expect(itemLines[0]).not.toContain('withMargin');
+    expect(itemLines[1]).toContain('withMargin');
+    expect(itemLines[1]).toContain('12.0f');
+  });
+
+  it('applies vertical itemSpacing as top margin', () => {
+    const rect1 = makeRect({ id: 'r:1', name: 'ItemA' });
+    const rect2 = makeRect({ id: 'r:2', name: 'ItemB' });
+    const frame = makeFrame({
+      autoLayout: { ...autoLayout, mode: 'vertical', itemSpacing: 8 },
+      children: [rect1, rect2],
+    });
+    const result = generateResizedBody(frame);
+
+    const lines = result.split('\n');
+    const itemLines = lines.filter(l => l.includes('fb.items.add'));
+    expect(itemLines[1]).toContain('8.0f');
+    // Vertical: top margin, not left margin
+    expect(itemLines[1]).toContain('Margin(8.0f, 0.0f, 0.0f, 0.0f)');
+  });
+
   it('skips reduced() when no padding', () => {
     const frame = makeFrame({
       autoLayout: {

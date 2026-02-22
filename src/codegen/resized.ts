@@ -212,13 +212,13 @@ export function generateFlexBoxLayout(frame: IRFrameNode, boundsExpr: string): s
   }
 
   // Add items
-  for (const child of frame.children) {
-    if (!child.visible) continue;
+  const visibleChildren = frame.children.filter(c => c.visible);
+  for (let i = 0; i < visibleChildren.length; i++) {
+    const child = visibleChildren[i];
 
     const w = child.bounds.width;
     const h = child.bounds.height;
     const grow = child.layoutGrow ?? 0;
-    const basis = al.mode === 'horizontal' ? w : h;
 
     let itemExpr = `juce::FlexItem(${toFloat(w)}, ${toFloat(h)})`;
     if (grow > 0) {
@@ -226,6 +226,14 @@ export function generateFlexBoxLayout(frame: IRFrameNode, boundsExpr: string): s
     }
     if (child.layoutAlign === 'stretch') {
       itemExpr += `.withAlignSelf(juce::FlexItem::AlignSelf::stretch)`;
+    }
+    // Apply itemSpacing as margin between items
+    if (al.itemSpacing > 0 && i > 0) {
+      if (al.mode === 'horizontal') {
+        itemExpr += `.withMargin(juce::FlexItem::Margin(0.0f, 0.0f, 0.0f, ${toFloat(al.itemSpacing)}))`;
+      } else {
+        itemExpr += `.withMargin(juce::FlexItem::Margin(${toFloat(al.itemSpacing)}, 0.0f, 0.0f, 0.0f))`;
+      }
     }
 
     lines.push(`fb.items.add(${itemExpr});`);
