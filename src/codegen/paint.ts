@@ -134,13 +134,27 @@ function generateRectPaint(
 }
 
 function perCornerRoundedRect(boundsExpr: string, cr: IRCornerRadius): string[] {
+  // JUCE signature: addRoundedRectangle(x, y, w, h, cornerSizeX, cornerSizeY,
+  //   curveTopLeft, curveTopRight, curveBottomLeft, curveBottomRight)
+  // cornerSize is the max radius; booleans enable/disable each corner.
+  // For truly different radii per corner, we approximate with the max and use a custom path.
+  const maxR = Math.max(cr.topLeft, cr.topRight, cr.bottomLeft, cr.bottomRight);
+  const allSame = cr.topLeft === cr.topRight && cr.topRight === cr.bottomLeft && cr.bottomLeft === cr.bottomRight;
+
+  if (allSame || (cr.topLeft > 0 && cr.topRight > 0 && cr.bottomLeft > 0 && cr.bottomRight > 0 &&
+      cr.topLeft === cr.topRight && cr.bottomLeft === cr.bottomRight && cr.topLeft === cr.bottomLeft)) {
+    // All corners equal — use simple rounded rect
+    return [`g.fillRoundedRectangle(${boundsExpr}, ${toFloat(cr.topLeft)});`];
+  }
+
   return [
     `{`,
     `    auto rc = ${boundsExpr};`,
     `    juce::Path p;`,
     `    p.addRoundedRectangle(rc.getX(), rc.getY(), rc.getWidth(), rc.getHeight(),`,
-    `                          ${toFloat(cr.topLeft)}, ${toFloat(cr.topRight)},`,
-    `                          ${toFloat(cr.bottomLeft)}, ${toFloat(cr.bottomRight)});`,
+    `                          ${toFloat(maxR)}, ${toFloat(maxR)},`,
+    `                          ${cr.topLeft > 0 ? 'true' : 'false'}, ${cr.topRight > 0 ? 'true' : 'false'},`,
+    `                          ${cr.bottomLeft > 0 ? 'true' : 'false'}, ${cr.bottomRight > 0 ? 'true' : 'false'});`,
     `    g.fillPath(p);`,
     `}`,
   ];

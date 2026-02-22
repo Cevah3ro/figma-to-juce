@@ -246,10 +246,9 @@ describe('generatePaintBody', () => {
     expect(result).toContain('juce::Path p;');
     expect(result).toContain('addRoundedRectangle');
     expect(result).toContain('fillPath');
-    expect(result).toContain('10.0f');
-    expect(result).toContain('20.0f');
-    expect(result).toContain('30.0f');
+    // Uses max radius (40.0f) as cornerSize, with boolean per-corner flags (all true since all > 0)
     expect(result).toContain('40.0f');
+    expect(result).toContain('true, true');;
   });
 
   it('handles frame with background fill', () => {
