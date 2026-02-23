@@ -8,7 +8,7 @@
 export function generateHeader(
   className: string,
   guardName: string,
-  childMembers: { varName: string; comment: string }[] = [],
+  childMembers: { varName: string; comment: string; declaration?: string }[] = [],
   imageMembers: { varName: string; comment: string }[] = [],
 ): string {
   let membersBlock = '';
@@ -22,7 +22,14 @@ export function generateHeader(
   
   if (childMembers.length > 0) {
     membersBlock += '\n' + childMembers
-      .map(m => `    // ${m.comment}\n    // juce::Component ${m.varName};`)
+      .map(m => {
+        if (m.declaration) {
+          // Typed JUCE component (detected from name)
+          return `    ${m.declaration}`;
+        }
+        // Generic placeholder (commented out)
+        return `    // ${m.comment}\n    // juce::Component ${m.varName};`;
+      })
       .join('\n') + '\n';
   }
 
@@ -55,13 +62,27 @@ export function generateImplementation(
   paintBody: string,
   resizedBody: string,
   imageMembers: { varName: string; comment: string }[] = [],
+  childMembers: { varName: string; constructorLines?: string[] }[] = [],
 ): string {
   const paintLines = indentBlock(paintBody, '    ');
   const resizedLines = indentBlock(resizedBody, '    ');
   
   let constructorBody = '';
+  
+  // Component initialization from hints
+  const hintedMembers = childMembers.filter(m => m.constructorLines && m.constructorLines.length > 0);
+  if (hintedMembers.length > 0) {
+    constructorBody += '\n';
+    for (const m of hintedMembers) {
+      for (const line of m.constructorLines!) {
+        constructorBody += `    ${line}\n`;
+      }
+      constructorBody += '\n';
+    }
+  }
+  
   if (imageMembers.length > 0) {
-    constructorBody = '\n    // TODO: Load images from resources or files\n';
+    constructorBody += '    // TODO: Load images from resources or files\n';
     constructorBody += '    // Example with BinaryData:\n';
     for (const img of imageMembers) {
       constructorBody += `    // ${img.varName} = juce::ImageFileFormat::loadFrom(BinaryData::${img.varName}_png, BinaryData::${img.varName}_pngSize);\n`;

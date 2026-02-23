@@ -7,6 +7,7 @@ import { generateResizedBody } from './resized.js';
 import { generateHeader, generateImplementation, toGuardName } from './templates.js';
 import { toClassName, toVariableName } from '../utils/naming.js';
 import { imageRefToMemberName } from './colour.js';
+import { detectComponentHint, generateMemberDeclaration, generateConstructorInit } from './component-hints.js';
 
 // ─── Public API ─────────────────────────────────────────────────────────────
 
@@ -61,13 +62,27 @@ export function generateComponent(frame: IRFrameNode): GeneratedComponent {
   const paintBody = generatePaintBody(frame);
   const resizedBody = generateResizedBody(frame);
 
-  // Collect child member info for header
+  // Collect child member info for header, using component hints when available
   const childMembers = frame.children
     .filter(c => c.visible)
-    .map(c => ({
-      varName: toVariableName(c.name),
-      comment: `${c.name} (${c.type})`,
-    }));
+    .map(c => {
+      const varName = toVariableName(c.name);
+      const hint = detectComponentHint(c.name);
+      if (hint) {
+        return {
+          varName,
+          comment: `${c.name} — ${hint.comment}`,
+          declaration: generateMemberDeclaration(varName, hint),
+          constructorLines: generateConstructorInit(varName, hint),
+        };
+      }
+      return {
+        varName,
+        comment: `${c.name} (${c.type})`,
+        declaration: undefined,
+        constructorLines: undefined,
+      };
+    });
 
   // Collect unique image fills from the entire node tree
   const imageFills = collectImageFills(frame);
@@ -84,7 +99,7 @@ export function generateComponent(frame: IRFrameNode): GeneratedComponent {
     },
     implementation: {
       fileName: `${className}.cpp`,
-      content: generateImplementation(className, headerFileName, paintBody, resizedBody, imageMembers),
+      content: generateImplementation(className, headerFileName, paintBody, resizedBody, imageMembers, childMembers),
     },
   };
 }
