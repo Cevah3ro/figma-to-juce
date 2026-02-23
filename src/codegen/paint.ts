@@ -11,6 +11,8 @@ import type {
   IRFill,
   IRStroke,
   IRDropShadow,
+  IRInnerShadow,
+  IRBlur,
   IRCornerRadius,
 } from '../ir/types.js';
 import {
@@ -67,6 +69,12 @@ function generateChildPaint(node: IRNode): string[] {
 
   // Node-specific drawing
   lines.push(...generateNodePaint(node, boundsExpr));
+
+  // Inner shadows (after fills, inside the shape)
+  lines.push(...generateInnerShadows(node, boundsExpr));
+
+  // Blur effects (comment placeholders)
+  lines.push(...generateBlurEffects(node));
 
   // Strokes
   lines.push(...generateStrokes(node, boundsExpr));
@@ -191,6 +199,49 @@ function generateDropShadows(node: IRNode): string[] {
     lines.push(`    juce::DropShadow shadow(${generateColour(shadow.color)}, ${Math.round(shadow.radius)}, juce::Point<int>(${Math.round(shadow.offset.x)}, ${Math.round(shadow.offset.y)}));`);
     lines.push(`    shadow.drawForRectangle(g, ${nodeBoundsExpr(node)}.toNearestInt());`);
     lines.push(`}`);
+  }
+
+  return lines;
+}
+
+// ─── Inner Shadows ──────────────────────────────────────────────────────────
+
+function generateInnerShadows(node: IRNode, boundsExpr: string): string[] {
+  const lines: string[] = [];
+
+  for (const effect of node.effects) {
+    if (effect.type !== 'innerShadow' || !effect.visible) continue;
+    const shadow = effect as IRInnerShadow;
+
+    // JUCE doesn't have built-in inner shadow support.
+    // Technique: draw a larger shadow path with exclusion, clipped to the node bounds.
+    lines.push(`{`);
+    lines.push(`    // Inner shadow: offset(${Math.round(shadow.offset.x)}, ${Math.round(shadow.offset.y)}) blur ${Math.round(shadow.radius)}`);
+    lines.push(`    g.saveState();`);
+    lines.push(`    g.reduceClipRegion(${boundsExpr}.toNearestInt());`);
+    lines.push(`    juce::DropShadow innerShadow(${generateColour(shadow.color)}, ${Math.round(shadow.radius)}, juce::Point<int>(${Math.round(shadow.offset.x)}, ${Math.round(shadow.offset.y)}));`);
+    lines.push(`    // Draw shadow around an inverted region to create inner shadow effect`);
+    lines.push(`    auto outerRect = ${boundsExpr}.expanded(${Math.round(shadow.radius + Math.abs(shadow.offset.x) + Math.abs(shadow.offset.y))}).toNearestInt();`);
+    lines.push(`    innerShadow.drawForRectangle(g, outerRect);`);
+    lines.push(`    g.restoreState();`);
+    lines.push(`}`);
+  }
+
+  return lines;
+}
+
+// ─── Blur Effects ───────────────────────────────────────────────────────────
+
+function generateBlurEffects(node: IRNode): string[] {
+  const lines: string[] = [];
+
+  for (const effect of node.effects) {
+    if ((effect.type !== 'layerBlur' && effect.type !== 'backgroundBlur') || !effect.visible) continue;
+    const blur = effect as IRBlur;
+
+    // JUCE doesn't have built-in blur — leave a helpful comment
+    lines.push(`// ${effect.type === 'backgroundBlur' ? 'Background' : 'Layer'} blur (radius: ${Math.round(blur.radius)}px)`);
+    lines.push(`// Implement via juce::ImageConvolutionKernel or custom shader`);
   }
 
   return lines;

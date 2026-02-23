@@ -138,6 +138,76 @@ describe('generatePaintBody', () => {
     expect(shadowIdx).toBeLessThan(fillIdx);
   });
 
+  it('generates inner shadow after fills', () => {
+    const rect = makeRect({
+      fills: [{ type: 'solid', color: { r: 1, g: 1, b: 1, a: 1 }, opacity: 1, visible: true }],
+      effects: [{
+        type: 'innerShadow',
+        color: { r: 0, g: 0, b: 0, a: 0.3 },
+        offset: { x: 0, y: 2 },
+        radius: 4,
+        spread: 0,
+        visible: true,
+      }],
+    });
+    const frame = makeFrame({ children: [rect] });
+    const result = generatePaintBody(frame);
+
+    expect(result).toContain('Inner shadow');
+    expect(result).toContain('saveState');
+    expect(result).toContain('reduceClipRegion');
+    expect(result).toContain('restoreState');
+    // Inner shadow should come after fill
+    const fillIdx = result.indexOf('fillRect');
+    const innerIdx = result.indexOf('Inner shadow');
+    expect(innerIdx).toBeGreaterThan(fillIdx);
+  });
+
+  it('generates blur comment placeholder', () => {
+    const rect = makeRect({
+      fills: [{ type: 'solid', color: { r: 1, g: 1, b: 1, a: 1 }, opacity: 1, visible: true }],
+      effects: [{
+        type: 'layerBlur',
+        radius: 10,
+        visible: true,
+      }],
+    });
+    const frame = makeFrame({ children: [rect] });
+    const result = generatePaintBody(frame);
+
+    expect(result).toContain('Layer blur');
+    expect(result).toContain('radius: 10px');
+    expect(result).toContain('ImageConvolutionKernel');
+  });
+
+  it('generates background blur comment', () => {
+    const rect = makeRect({
+      effects: [{
+        type: 'backgroundBlur',
+        radius: 20,
+        visible: true,
+      }],
+    });
+    const frame = makeFrame({ children: [rect] });
+    const result = generatePaintBody(frame);
+
+    expect(result).toContain('Background blur');
+  });
+
+  it('skips invisible effects', () => {
+    const rect = makeRect({
+      effects: [
+        { type: 'innerShadow', color: { r: 0, g: 0, b: 0, a: 0.5 }, offset: { x: 0, y: 2 }, radius: 4, spread: 0, visible: false },
+        { type: 'layerBlur', radius: 10, visible: false },
+      ],
+    });
+    const frame = makeFrame({ children: [rect] });
+    const result = generatePaintBody(frame);
+
+    expect(result).not.toContain('Inner shadow');
+    expect(result).not.toContain('Layer blur');
+  });
+
   it('generates stroke code', () => {
     const rect = makeRect({
       fills: [{ type: 'solid', color: { r: 1, g: 1, b: 1, a: 1 }, opacity: 1, visible: true }],
