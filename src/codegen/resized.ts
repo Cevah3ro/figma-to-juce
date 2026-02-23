@@ -10,6 +10,7 @@ import type {
 import { isIRFrameNode, isIRGroupNode } from '../ir/types.js';
 import { toFloat, toInt } from '../utils/math.js';
 import { toVariableName } from '../utils/naming.js';
+import { detectComponentHint } from './component-hints.js';
 
 // ─── Public API ─────────────────────────────────────────────────────────────
 
@@ -66,6 +67,12 @@ function generateAbsoluteLayout(
       lines.push(
         `auto ${varName}Bounds = ${parentBoundsExpr}.getProportion(juce::Rectangle<float>(${toFloat(xProp)}, ${toFloat(yProp)}, ${toFloat(wProp)}, ${toFloat(hProp)}));`,
       );
+    }
+
+    // If this is a detected JUCE component, add setBounds call
+    const hint = detectComponentHint(child.name);
+    if (hint) {
+      lines.push(`${varName}.setBounds(${varName}Bounds.toNearestInt());`);
     }
   }
 

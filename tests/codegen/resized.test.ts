@@ -286,3 +286,33 @@ describe('generateFlexBoxLayout', () => {
     expect(result).toContain('performLayout(bounds)');
   });
 });
+
+describe('component hint setBounds', () => {
+  it('generates setBounds for detected JUCE components', () => {
+    const knob = makeRect({
+      name: 'Knob_Volume',
+      relativeX: 50,
+      relativeY: 50,
+      bounds: { x: 50, y: 50, width: 80, height: 80 },
+    });
+    const frame = makeFrame({ children: [knob] });
+    const result = generateResizedBody(frame);
+
+    expect(result).toContain('knobVolumeBounds');
+    expect(result).toContain('knobVolume.setBounds(knobVolumeBounds.toNearestInt())');
+  });
+
+  it('does not generate setBounds for non-component nodes', () => {
+    const bg = makeRect({
+      name: 'Background',
+      relativeX: 0,
+      relativeY: 0,
+      bounds: { x: 0, y: 0, width: 400, height: 300 },
+    });
+    const frame = makeFrame({ children: [bg] });
+    const result = generateResizedBody(frame);
+
+    expect(result).toContain('backgroundBounds');
+    expect(result).not.toContain('.setBounds(');
+  });
+});
