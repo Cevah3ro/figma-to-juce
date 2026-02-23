@@ -164,6 +164,23 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+/**
+ * Fetch image fill URLs for the given image refs.
+ * Returns a map of imageRef → download URL.
+ */
+export async function fetchImageFills(
+  fileKey: string,
+  token: string,
+  options?: FetchOptions,
+): Promise<Record<string, string>> {
+  const opts = { ...DEFAULT_OPTIONS, ...options };
+  const url = `${FIGMA_API_BASE}/files/${fileKey}/images`;
+  const data = (await fetchWithRetry(url, token, opts)) as {
+    meta: { images: Record<string, string> };
+  };
+  return data.meta.images;
+}
+
 export class FigmaApiError extends Error {
   constructor(
     message: string,

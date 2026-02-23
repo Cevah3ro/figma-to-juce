@@ -1,11 +1,12 @@
 // Orchestrator: IR tree → complete JUCE Component .h + .cpp files.
 
-import type { IRDocument, IRPage, IRNode, IRFrameNode } from '../ir/types.js';
-import { isIRFrameNode } from '../ir/types.js';
+import type { IRDocument, IRPage, IRNode, IRFrameNode, IRFill } from '../ir/types.js';
+import { isIRFrameNode, hasIRChildren } from '../ir/types.js';
 import { generatePaintBody } from './paint.js';
 import { generateResizedBody } from './resized.js';
 import { generateHeader, generateImplementation, toGuardName } from './templates.js';
 import { toClassName, toVariableName } from '../utils/naming.js';
+import { imageRefToMemberName } from './colour.js';
 
 // ─── Public API ─────────────────────────────────────────────────────────────
 
@@ -68,15 +69,46 @@ export function generateComponent(frame: IRFrameNode): GeneratedComponent {
       comment: `${c.name} (${c.type})`,
     }));
 
+  // Collect unique image fills from the entire node tree
+  const imageFills = collectImageFills(frame);
+  const imageMembers = imageFills.map(imageRef => ({
+    varName: imageRefToMemberName(imageRef),
+    comment: `Image asset (ref: ${imageRef})`,
+  }));
+
   return {
     className,
     header: {
       fileName: headerFileName,
-      content: generateHeader(className, guardName, childMembers),
+      content: generateHeader(className, guardName, childMembers, imageMembers),
     },
     implementation: {
       fileName: `${className}.cpp`,
-      content: generateImplementation(className, headerFileName, paintBody, resizedBody),
+      content: generateImplementation(className, headerFileName, paintBody, resizedBody, imageMembers),
     },
   };
+}
+
+/**
+ * Recursively collect all unique image fill references from a node tree.
+ */
+function collectImageFills(node: IRNode): string[] {
+  const imageRefs = new Set<string>();
+  
+  // Collect from current node
+  for (const fill of node.fills) {
+    if (fill.type === 'image' && fill.visible) {
+      imageRefs.add(fill.imageRef);
+    }
+  }
+  
+  // Recursively collect from children
+  if (hasIRChildren(node)) {
+    for (const child of node.children) {
+      const childRefs = collectImageFills(child);
+      childRefs.forEach(ref => imageRefs.add(ref));
+    }
+  }
+  
+  return Array.from(imageRefs);
 }

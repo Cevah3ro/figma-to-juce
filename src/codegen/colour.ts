@@ -6,6 +6,7 @@ import type {
   IRSolidFill,
   IRLinearGradientFill,
   IRRadialGradientFill,
+  IRImageFill,
 } from '../ir/types.js';
 
 // ─── Colour Primitives ──────────────────────────────────────────────────────
@@ -54,7 +55,7 @@ export function generateFillCode(fill: IRFill, boundsVar: string): string {
     case 'radialGradient':
       return generateRadialGradientCode(fill, boundsVar);
     case 'image':
-      return `// TODO: Image fill (imageRef: ${fill.imageRef})\n`;
+      return generateImageFillCode(fill, boundsVar);
   }
 }
 
@@ -116,6 +117,76 @@ function generateRadialGradientCode(fill: IRRadialGradientFill, boundsVar: strin
 
   lines.push(`g.setGradientFill(gradient);`);
   return lines.join('\n') + '\n';
+}
+
+/**
+ * Generate image drawing code for an image fill.
+ * Returns the drawing code that references a member variable named `image_<imageRef>`.
+ */
+function generateImageFillCode(fill: IRImageFill, boundsVar: string): string {
+  const imageMemberName = imageRefToMemberName(fill.imageRef);
+  const lines: string[] = [];
+  
+  // Check if image is valid before drawing
+  lines.push(`if (${imageMemberName}.isValid())`);
+  lines.push(`{`);
+  
+  // Apply opacity if needed
+  if (fill.opacity < 1) {
+    lines.push(`    g.setOpacity(${formatFloat(fill.opacity)});`);
+  }
+  
+  // Generate drawing code based on scale mode
+  switch (fill.scaleMode) {
+    case 'fill':
+      // Stretch to fill bounds, may distort aspect ratio
+      lines.push(`    g.drawImage(${imageMemberName}, ${boundsVar},`);
+      lines.push(`                juce::RectanglePlacement::stretchToFit);`);
+      break;
+    
+    case 'fit':
+      // Fit within bounds, maintain aspect ratio
+      lines.push(`    g.drawImage(${imageMemberName}, ${boundsVar},`);
+      lines.push(`                juce::RectanglePlacement::centred | juce::RectanglePlacement::onlyReduceInSize);`);
+      break;
+    
+    case 'crop':
+      // Fill bounds and crop, maintain aspect ratio
+      lines.push(`    g.drawImage(${imageMemberName}, ${boundsVar},`);
+      lines.push(`                juce::RectanglePlacement::fillDestination);`);
+      break;
+    
+    case 'tile':
+      // Tile the image
+      lines.push(`    auto tileW = ${imageMemberName}.getWidth();`);
+      lines.push(`    auto tileH = ${imageMemberName}.getHeight();`);
+      lines.push(`    for (int y = ${boundsVar}.getY(); y < ${boundsVar}.getBottom(); y += tileH)`);
+      lines.push(`    {`);
+      lines.push(`        for (int x = ${boundsVar}.getX(); x < ${boundsVar}.getRight(); x += tileW)`);
+      lines.push(`        {`);
+      lines.push(`            g.drawImageAt(${imageMemberName}, x, y);`);
+      lines.push(`        }`);
+      lines.push(`    }`);
+      break;
+  }
+  
+  // Reset opacity if it was changed
+  if (fill.opacity < 1) {
+    lines.push(`    g.setOpacity(1.0f);`);
+  }
+  
+  lines.push(`}`);
+  
+  return lines.join('\n') + '\n';
+}
+
+/**
+ * Convert an image ref hash to a valid C++ member variable name.
+ */
+export function imageRefToMemberName(imageRef: string): string {
+  // Remove non-alphanumeric characters and prefix with 'image_'
+  const sanitized = imageRef.replace(/[^a-zA-Z0-9]/g, '_');
+  return `image_${sanitized}`;
 }
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
