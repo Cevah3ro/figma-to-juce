@@ -33,16 +33,20 @@ import { toFloat } from '../utils/math.js';
 /**
  * Generate the full paint() method body for a component's IR tree.
  * Returns lines of C++ code (without the method signature/braces).
+ * @param root The root frame node
+ * @param excludeChildIds IDs of child nodes that are nested components (don't draw them inline)
  */
-export function generatePaintBody(root: IRFrameNode): string {
+export function generatePaintBody(root: IRFrameNode, excludeChildIds: string[] = []): string {
   const lines: string[] = [];
 
   // Draw the root frame's own background
   lines.push(...generateNodePaint(root, 'getLocalBounds().toFloat()'));
 
-  // Draw children recursively
+  // Draw children recursively (skip nested components)
   for (const child of root.children) {
-    lines.push(...generateChildPaint(child));
+    if (!excludeChildIds.includes(child.id)) {
+      lines.push(...generateChildPaint(child, excludeChildIds));
+    }
   }
 
   return lines.join('\n');
@@ -50,7 +54,7 @@ export function generatePaintBody(root: IRFrameNode): string {
 
 // ─── Per-node Paint Generation ──────────────────────────────────────────────
 
-function generateChildPaint(node: IRNode): string[] {
+function generateChildPaint(node: IRNode, excludeChildIds: string[] = []): string[] {
   if (!node.visible) return [];
 
   const lines: string[] = [];
@@ -79,10 +83,12 @@ function generateChildPaint(node: IRNode): string[] {
   // Strokes
   lines.push(...generateStrokes(node, boundsExpr));
 
-  // Recurse into children
+  // Recurse into children (skip nested components)
   if (isIRFrameNode(node) || isIRGroupNode(node)) {
     for (const child of node.children) {
-      lines.push(...generateChildPaint(child));
+      if (!excludeChildIds.includes(child.id)) {
+        lines.push(...generateChildPaint(child, excludeChildIds));
+      }
     }
   }
 

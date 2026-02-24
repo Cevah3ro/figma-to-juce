@@ -14,12 +14,23 @@ import { detectComponentHint } from './component-hints.js';
 
 // ─── Public API ─────────────────────────────────────────────────────────────
 
+export interface NestedComponentInfo {
+  node: IRNode;
+  varName: string;
+  className: string;
+}
+
 /**
  * Generate the resized() method body for a component.
  * Outputs setBounds() calls using proportional coordinates,
  * or FlexBox layout for auto-layout frames.
+ * @param root The root frame node
+ * @param nestedComponents Info about nested component children
  */
-export function generateResizedBody(root: IRFrameNode): string {
+export function generateResizedBody(
+  root: IRFrameNode,
+  nestedComponents: NestedComponentInfo[] = []
+): string {
   const lines: string[] = [];
   const rootW = root.bounds.width;
   const rootH = root.bounds.height;
@@ -27,9 +38,9 @@ export function generateResizedBody(root: IRFrameNode): string {
   lines.push(`auto bounds = getLocalBounds();`);
 
   if (root.autoLayout) {
-    lines.push(...generateFlexBoxLayout(root, 'bounds'));
+    lines.push(...generateFlexBoxLayout(root, 'bounds', nestedComponents));
   } else {
-    lines.push(...generateAbsoluteLayout(root.children, rootW, rootH, 'bounds'));
+    lines.push(...generateAbsoluteLayout(root.children, rootW, rootH, 'bounds', nestedComponents));
   }
 
   return lines.join('\n');
@@ -42,6 +53,7 @@ function generateAbsoluteLayout(
   parentW: number,
   parentH: number,
   parentBoundsExpr: string,
+  nestedComponents: NestedComponentInfo[] = []
 ): string[] {
   const lines: string[] = [];
 
@@ -69,9 +81,11 @@ function generateAbsoluteLayout(
       );
     }
 
-    // If this is a detected JUCE component, add setBounds call
+    // Check if this is a nested component or a JUCE component hint
+    const isNestedComponent = nestedComponents.some(nc => nc.node.id === child.id);
     const hint = detectComponentHint(child.name);
-    if (hint) {
+    
+    if (isNestedComponent || hint) {
       lines.push(`${varName}.setBounds(${varName}Bounds.toNearestInt());`);
     }
   }
@@ -205,7 +219,11 @@ function generateHeightConstraint(
 /**
  * Generate juce::FlexBox code for an auto-layout frame.
  */
-export function generateFlexBoxLayout(frame: IRFrameNode, boundsExpr: string): string[] {
+export function generateFlexBoxLayout(
+  frame: IRFrameNode,
+  boundsExpr: string,
+  nestedComponents: NestedComponentInfo[] = []
+): string[] {
   const lines: string[] = [];
   const al = frame.autoLayout!;
 
@@ -222,12 +240,22 @@ export function generateFlexBoxLayout(frame: IRFrameNode, boundsExpr: string): s
   const visibleChildren = frame.children.filter(c => c.visible);
   for (let i = 0; i < visibleChildren.length; i++) {
     const child = visibleChildren[i];
+    const varName = toVariableName(child.name);
+    const isNestedComponent = nestedComponents.some(nc => nc.node.id === child.id);
+    const hint = detectComponentHint(child.name);
 
     const w = child.bounds.width;
     const h = child.bounds.height;
     const grow = child.layoutGrow ?? 0;
 
-    let itemExpr = `juce::FlexItem(${toFloat(w)}, ${toFloat(h)})`;
+    // For nested components or JUCE components, associate the FlexItem with the actual component
+    let itemExpr = '';
+    if (isNestedComponent || hint) {
+      itemExpr = `juce::FlexItem(${varName}).withWidth(${toFloat(w)}).withHeight(${toFloat(h)})`;
+    } else {
+      itemExpr = `juce::FlexItem(${toFloat(w)}, ${toFloat(h)})`;
+    }
+    
     if (grow > 0) {
       itemExpr += `.withFlex(${toFloat(grow)})`;
     }
