@@ -67,7 +67,11 @@ generated/
   PluginEditor.cpp
   SettingsPanel.h
   SettingsPanel.cpp
+  image_abc123.png          # Auto-downloaded from Figma
+  BinaryData.cmake          # CMake snippet for JUCE BinaryData
 ```
+
+When using the Figma API (not local JSON), image assets are automatically downloaded and a `BinaryData.cmake` snippet is generated. The C++ code references images via `BinaryData::` — just include the cmake file in your project.
 
 ### Example output
 
