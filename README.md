@@ -31,6 +31,8 @@ export FIGMA_TOKEN=figd_xxxxx
 figma-to-juce --file-key abc123XYZ --output ./Source/UI/
 ```
 
+**Automatic Image Download:** When using the Figma API (not local JSON), all image fills are automatically downloaded and saved alongside the generated code. The generated components include ready-to-use `BinaryData` loading code.
+
 Export specific nodes by ID:
 
 ```bash
