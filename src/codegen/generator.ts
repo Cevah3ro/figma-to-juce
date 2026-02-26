@@ -8,6 +8,7 @@ import { generateHeader, generateImplementation, toGuardName } from './templates
 import { toClassName, toVariableName } from '../utils/naming.js';
 import { imageRefToMemberName } from './colour.js';
 import { detectComponentHint, generateMemberDeclaration, generateConstructorInit } from './component-hints.js';
+import type { DownloadedImage } from '../figma/image-downloader.js';
 
 // ─── Public API ─────────────────────────────────────────────────────────────
 
@@ -26,12 +27,18 @@ export interface GeneratedComponent {
  * Generate JUCE Component files from an IR document.
  * Top-level frames (and components) become individual Component classes.
  * Nested frames are also generated as separate components.
+ * 
+ * @param doc - IR document to generate from
+ * @param downloadedImages - Optional array of downloaded images with file paths
  */
-export function generateFromDocument(doc: IRDocument): GeneratedComponent[] {
+export function generateFromDocument(
+  doc: IRDocument,
+  downloadedImages: DownloadedImage[] = [],
+): GeneratedComponent[] {
   const components: GeneratedComponent[] = [];
 
   for (const page of doc.pages) {
-    components.push(...generateFromPage(page));
+    components.push(...generateFromPage(page, downloadedImages));
   }
 
   return components;
@@ -40,12 +47,15 @@ export function generateFromDocument(doc: IRDocument): GeneratedComponent[] {
 /**
  * Generate JUCE Component files from a single IR page.
  */
-export function generateFromPage(page: IRPage): GeneratedComponent[] {
+export function generateFromPage(
+  page: IRPage,
+  downloadedImages: DownloadedImage[] = [],
+): GeneratedComponent[] {
   const components: GeneratedComponent[] = [];
 
   for (const node of page.children) {
     if (isIRFrameNode(node)) {
-      components.push(...generateComponentHierarchy(node));
+      components.push(...generateComponentHierarchy(node, downloadedImages));
     }
   }
 
@@ -55,18 +65,21 @@ export function generateFromPage(page: IRPage): GeneratedComponent[] {
 /**
  * Generate a component and all its nested component children recursively.
  */
-function generateComponentHierarchy(frame: IRFrameNode): GeneratedComponent[] {
+function generateComponentHierarchy(
+  frame: IRFrameNode,
+  downloadedImages: DownloadedImage[] = [],
+): GeneratedComponent[] {
   const components: GeneratedComponent[] = [];
   
   // Generate components for nested frame children first (depth-first)
   for (const child of frame.children) {
     if (child.visible && isIRFrameNode(child)) {
-      components.push(...generateComponentHierarchy(child));
+      components.push(...generateComponentHierarchy(child, downloadedImages));
     }
   }
   
   // Then generate this component
-  components.push(generateComponent(frame));
+  components.push(generateComponent(frame, downloadedImages));
   
   return components;
 }
@@ -74,8 +87,14 @@ function generateComponentHierarchy(frame: IRFrameNode): GeneratedComponent[] {
 /**
  * Generate a single JUCE Component from a frame.
  * Nested frame children are treated as child component members.
+ * 
+ * @param frame - Frame node to generate from
+ * @param downloadedImages - Optional array of downloaded images with file paths
  */
-export function generateComponent(frame: IRFrameNode): GeneratedComponent {
+export function generateComponent(
+  frame: IRFrameNode,
+  downloadedImages: DownloadedImage[] = [],
+): GeneratedComponent {
   const className = toClassName(frame.name);
   const guardName = toGuardName(className);
   const headerFileName = `${className}.h`;
@@ -131,10 +150,16 @@ export function generateComponent(frame: IRFrameNode): GeneratedComponent {
 
   // Collect unique image fills from the entire node tree (excluding nested components)
   const imageFills = collectImageFills(frame, nestedComponents.map(nc => nc.node.id));
-  const imageMembers = imageFills.map(imageRef => ({
-    varName: imageRefToMemberName(imageRef),
-    comment: `Image asset (ref: ${imageRef})`,
-  }));
+  
+  // Match image fills with downloaded images
+  const imageMembers = imageFills.map(imageRef => {
+    const downloaded = downloadedImages.find(img => img.imageRef === imageRef);
+    return {
+      varName: imageRefToMemberName(imageRef),
+      comment: `Image asset (ref: ${imageRef})`,
+      fileName: downloaded?.fileName,
+    };
+  });
 
   return {
     className,

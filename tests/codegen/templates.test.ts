@@ -88,4 +88,50 @@ describe('generateImplementation', () => {
 
     expect(result).toContain('// (empty)');
   });
+
+  it('generates BinaryData loading when images have fileNames', () => {
+    const result = generateImplementation(
+      'WithImages',
+      'WithImages.h',
+      'g.fillAll(juce::Colours::black);',
+      'auto bounds = getLocalBounds();',
+      [
+        { varName: 'image_abc123', comment: 'Image asset (ref: abc123)', fileName: 'image_abc123.png' },
+      ],
+    );
+
+    expect(result).toContain('image_abc123 = juce::ImageFileFormat::loadFrom(BinaryData::image_abc123_png, BinaryData::image_abc123_pngSize);');
+    expect(result).not.toContain('TODO');
+  });
+
+  it('generates TODO comments for images without fileNames', () => {
+    const result = generateImplementation(
+      'MissingImages',
+      'MissingImages.h',
+      'g.fillAll(juce::Colours::black);',
+      'auto bounds = getLocalBounds();',
+      [
+        { varName: 'image_xyz', comment: 'Image asset (ref: xyz)' },
+      ],
+    );
+
+    expect(result).toContain('TODO');
+    expect(result).toContain('// image_xyz = juce::ImageFileFormat::loadFrom');
+  });
+
+  it('generates mixed loading code when some images are downloaded', () => {
+    const result = generateImplementation(
+      'Mixed',
+      'Mixed.h',
+      '',
+      '',
+      [
+        { varName: 'image_a', comment: 'a', fileName: 'image_a.png' },
+        { varName: 'image_b', comment: 'b' },
+      ],
+    );
+
+    expect(result).toContain('image_a = juce::ImageFileFormat::loadFrom(BinaryData::image_a_png, BinaryData::image_a_pngSize);');
+    expect(result).toContain('// image_b = juce::ImageFileFormat::loadFrom');
+  });
 });

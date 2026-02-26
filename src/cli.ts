@@ -4,9 +4,10 @@
 import { Command } from 'commander';
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
-import { fetchFigmaFile } from './figma/api.js';
+import { fetchFigmaFile, fetchImageFills } from './figma/api.js';
 import { parseFigmaFile } from './figma/parser.js';
 import { generateFromDocument } from './codegen/generator.js';
+import { downloadImages, type DownloadedImage } from './figma/image-downloader.js';
 import type { FigmaFileResponse } from './figma/types.js';
 
 const program = new Command();
@@ -43,6 +44,9 @@ interface CliOptions {
 async function run(opts: CliOptions): Promise<void> {
   // Resolve Figma data source
   let figmaData: FigmaFileResponse;
+  let downloadedImages: DownloadedImage[] = [];
+  let fileKey: string | undefined;
+  let token: string | undefined;
 
   if (opts.json) {
     // Load from local JSON file
@@ -52,7 +56,8 @@ async function run(opts: CliOptions): Promise<void> {
     figmaData = JSON.parse(raw) as FigmaFileResponse;
   } else if (opts.fileKey) {
     // Fetch from Figma API
-    const token = opts.token ?? process.env.FIGMA_TOKEN;
+    fileKey = opts.fileKey;
+    token = opts.token ?? process.env.FIGMA_TOKEN;
     if (!token) {
       throw new Error('Figma token required. Use --token or set FIGMA_TOKEN environment variable.');
     }
@@ -69,8 +74,25 @@ async function run(opts: CliOptions): Promise<void> {
   const frameCount = irDocument.pages.reduce((sum, p) => sum + p.children.length, 0);
   console.log(`Found ${irDocument.pages.length} page(s), ${frameCount} top-level frame(s).`);
 
-  // Generate C++ code
-  const components = generateFromDocument(irDocument);
+  // Download images if using Figma API
+  if (fileKey && token) {
+    console.log('Fetching image URLs...');
+    const imageUrls = await fetchImageFills(fileKey, token);
+    const imageCount = Object.keys(imageUrls).length;
+    
+    if (imageCount > 0) {
+      console.log(`Downloading ${imageCount} image(s)...`);
+      const outputDir = resolve(opts.output);
+      await mkdir(outputDir, { recursive: true });
+      downloadedImages = await downloadImages(imageUrls, outputDir);
+      console.log(`Downloaded ${downloadedImages.length} image(s).`);
+    } else {
+      console.log('No images to download.');
+    }
+  }
+
+  // Generate C++ code with downloaded image paths
+  const components = generateFromDocument(irDocument, downloadedImages);
   if (components.length === 0) {
     console.log('No components generated. Check that the Figma file contains top-level frames.');
     return;

@@ -3,13 +3,13 @@
 /**
  * Generate the .h header file content for a JUCE Component class.
  * @param childMembers Optional array of {varName, comment} for child component placeholders.
- * @param imageMembers Optional array of {varName, comment} for image asset members.
+ * @param imageMembers Optional array of {varName, comment, fileName?} for image asset members.
  */
 export function generateHeader(
   className: string,
   guardName: string,
   childMembers: { varName: string; comment: string; declaration?: string }[] = [],
-  imageMembers: { varName: string; comment: string }[] = [],
+  imageMembers: { varName: string; comment: string; fileName?: string }[] = [],
 ): string {
   let membersBlock = '';
   
@@ -54,14 +54,16 @@ private:${membersBlock}
 
 /**
  * Generate the .cpp implementation file content for a JUCE Component class.
- * @param imageMembers Optional array of image member names to generate loading code comments.
+ * @param imageMembers Optional array of {varName, comment, fileName?} for image loading code.
+ *   When fileName is provided (image was downloaded), generates BinaryData loading code.
+ *   Otherwise generates TODO comments with examples.
  */
 export function generateImplementation(
   className: string,
   headerFileName: string,
   paintBody: string,
   resizedBody: string,
-  imageMembers: { varName: string; comment: string }[] = [],
+  imageMembers: { varName: string; comment: string; fileName?: string }[] = [],
   childMembers: { varName: string; constructorLines?: string[] }[] = [],
 ): string {
   const paintLines = indentBlock(paintBody, '    ');
@@ -82,14 +84,29 @@ export function generateImplementation(
   }
   
   if (imageMembers.length > 0) {
-    constructorBody += '    // TODO: Load images from resources or files\n';
-    constructorBody += '    // Example with BinaryData:\n';
-    for (const img of imageMembers) {
-      constructorBody += `    // ${img.varName} = juce::ImageFileFormat::loadFrom(BinaryData::${img.varName}_png, BinaryData::${img.varName}_pngSize);\n`;
+    const downloadedImages = imageMembers.filter(img => img.fileName);
+    const pendingImages = imageMembers.filter(img => !img.fileName);
+    
+    if (downloadedImages.length > 0) {
+      constructorBody += '    // Load images from BinaryData (add downloaded images to your JUCE project\'s BinaryData)\n';
+      for (const img of downloadedImages) {
+        // Convert filename to BinaryData identifier: image_abc123.png → image_abc123_png
+        const binaryName = img.fileName!.replace(/\./g, '_');
+        constructorBody += `    ${img.varName} = juce::ImageFileFormat::loadFrom(BinaryData::${binaryName}, BinaryData::${binaryName}Size);\n`;
+      }
+      constructorBody += '\n';
     }
-    constructorBody += '    // Or from file:\n';
-    for (const img of imageMembers) {
-      constructorBody += `    // ${img.varName} = juce::ImageFileFormat::loadFrom(juce::File("path/to/${img.varName}.png"));\n`;
+    
+    if (pendingImages.length > 0) {
+      constructorBody += '    // TODO: Load images from resources or files\n';
+      constructorBody += '    // Example with BinaryData:\n';
+      for (const img of pendingImages) {
+        constructorBody += `    // ${img.varName} = juce::ImageFileFormat::loadFrom(BinaryData::${img.varName}_png, BinaryData::${img.varName}_pngSize);\n`;
+      }
+      constructorBody += '    // Or from file:\n';
+      for (const img of pendingImages) {
+        constructorBody += `    // ${img.varName} = juce::ImageFileFormat::loadFrom(juce::File("path/to/${img.varName}.png"));\n`;
+      }
     }
   }
 
