@@ -112,5 +112,23 @@ async function run(opts: CliOptions): Promise<void> {
     console.log(`  ${comp.className}: ${comp.header.fileName}, ${comp.implementation.fileName}`);
   }
 
+  // Generate CMakeLists.txt snippet for BinaryData if images were downloaded
+  if (downloadedImages.length > 0) {
+    const binaryDataLines = [
+      '# Add this to your JUCE CMakeLists.txt to include downloaded image assets',
+      '# as BinaryData. Adjust the target name to match your project.',
+      '',
+      'juce_add_binary_data(BinaryData',
+      '    HEADER_NAME BinaryData.h',
+      '    NAMESPACE BinaryData',
+      '    SOURCES',
+      ...downloadedImages.map(img => `        ${img.fileName}`),
+      ')',
+    ];
+    const cmakePath = join(outputDir, 'BinaryData.cmake');
+    await writeFile(cmakePath, binaryDataLines.join('\n') + '\n', 'utf-8');
+    console.log(`  BinaryData.cmake (include in your CMakeLists.txt)`);
+  }
+
   console.log(`\nGenerated ${components.length} component(s) in ${outputDir}`);
 }
